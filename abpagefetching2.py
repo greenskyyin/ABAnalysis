@@ -77,11 +77,22 @@ def SearchPageParse(Html):
     return PageToDic
 
 
-def RoomPageParse(IndividualUrl,writeList):
-    soup = BeautifulSoup(IndividualUrl)
-    IndividualUrl = []
-    StrList = []
+def RoomPageParse(IndividualHtml,writeList):
+    soup = BeautifulSoup(IndividualHtml)
     Page_table = soup.find_all('div', class_ = 'col-md-6')
+
+    IndList_list = []
+
+    for item in Page_table:
+        strongFound = item.find_all('strong')
+        strongWOSpan = []
+        for i in strongFound:
+            if not i.find_all('span'):
+                print("@@@@@",i)
+                strongWOSpan.append(i)
+            else:
+                print("%%%%%", i)
+        IndList_list.append(strongWOSpan)
 
     #print(Page_table)
     if len(Page_table) < 2:
@@ -91,6 +102,7 @@ def RoomPageParse(IndividualUrl,writeList):
     IndList3 = Page_table[2].find_all('strong')
     IndList4 = Page_table[3].find_all('strong')
     IndList5 = Page_table[4].find_all('strong')
+    """
     IndDic = {}
     RangeList = ['Accommodates', 'Bathrooms', 'Bed type', 'Bedrooms', 'Beds', 'Check In', 'Check Out', 'Property type', 'Room type', 'Cleaning Fee', 'Security Deposit', 'Weekly discount', 'Monthly discount', 'Permit / Tax ID']
     print(type(IndList3))
@@ -100,6 +112,7 @@ def RoomPageParse(IndividualUrl,writeList):
     print ('444444444444444444444')
     print(IndList5)
     print ('555555555555555555555')
+    """
 '''
     for piece in IndList1:
         match = re.search('\$([\w\s]+)\=[\d.]+\"\>([\w\d\s\D.]+)\<\/[\w]+\>',str(piece))
