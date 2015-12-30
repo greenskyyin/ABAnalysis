@@ -149,7 +149,7 @@ def RoomPageParse(IndividualHtml,writeList):
         IndDic[key] = value
     for piece in IndList5:
         #writeList.append(piece.text)
-        match = re.search('\<\/[\w]+\>([\w\d\s\D.]+)\<\/[\w]+\>',str(piece))
+        match = re.search('\<[\w]+\>([\w\d\s\D.]+)\<\/[\w]+\>',str(piece))
         #print(match.group(1)): 2
         if match == None:
             print(piece)

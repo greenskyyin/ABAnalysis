@@ -15,7 +15,7 @@ c = conn.cursor()
 c.execute('CREATE TABLE airbnb (dataID INT, dataName TEXT, dataLAT REAL, dataLNG REAL, dataRevCnt INT, '
           'dataStarRating REAL, UserID INT, WebPage TEXT, Accommodates INT, Bathrooms REAL, BedType TEXT, '
           'Bedrooms REAL, Beds REAL, CheckIn TEXT, CheckOut TEXT, PropertyType TEXT, RoomType TEXT, '
-          'CleaningFee TEXT, SecurityDeposit TEXT, WeeklyDiscount REAL, MonthlyDiscount REAL, Permit/TaxID TEXT)')
+          'CleaningFee INT, SecurityDeposit INT, WeeklyDiscount REAL, MonthlyDiscount REAL, Permit/TaxID TEXT)')
 
 
 url = 'https://www.airbnb.com/s/New-York--NY'
@@ -96,9 +96,9 @@ def RoomPageTableParseLong(IndDic, IndList):
 
 def RoomPageTableParseShort(IndDic, IndList):
     for piece in IndList:
-        match = re.search('\<\/[\w]+\>([\w\d\s\D.]+)\<\/[\w]+\>',str(piece))
+        match = re.search('\<[\w]+\>([\w\d\s\D.]+)\<\/[\w]+\>',str(piece))
         #print(match.group(1), match.group(2)): Accommodates 2
-        value = match.group(2)
+        value = match.group(1)
         IndDic['MinimumStay'] = value
     return IndDic
 
@@ -110,6 +110,18 @@ def RoomPageTableforSql(IndDic, writeList):
         else:
             writeList.append('')
     return writeList
+
+def SqlTupleWriting(writeList):
+    for item in writeList:
+        if item == '':
+            item = '0'
+    if writeList[-4] != '0' and writeList[-5] != '0':
+        if writeList[-2] != '0':
+            if writeList[-3] != '0':
+                SqlTuple = (int(writeList[0]), writeList[1], float(writeList[2]), float(writeList[3]), int(writeList[4]),float(writeList[5]), int(writeList[6]), writeList[7], int(writeList[8]), float(writeList[9]), writeList[10], float(writeList[11]), float(writeList[12]), writeList[13], writeList[14], writeList[15], writeList[16], int(writeList[17][1:]), int(writeList[18][1:]), float(writeList[19][:-1])/100, float(writeList[20][:-1])/100, writeList[21])
+            if writeList[-3] = '0':
+                SqlTuple = (int(writeList[0]), writeList[1], float(writeList[2]), float(writeList[3]), int(writeList[4]),float(writeList[5]), int(writeList[6]), writeList[7], int(writeList[8]), float(writeList[9]), writeList[10], float(writeList[11]), float(writeList[12]), writeList[13], writeList[14], writeList[15], writeList[16], int(writeList[17][1:]), int(writeList[18][1:]), float(writeList[19]), float(writeList[20][:-1])/100, writeList[21])
+            if
 
 def dataEntry(SqlList):
     conn = sqlite3.connect('test.db')
@@ -125,23 +137,31 @@ def main():
     for dataID in PageToDic:
         RoomUrl = PageToDic[dataID][-1]
         RmPageTable = RoomPageParse(fetchweb(RoomUrl))
-        for i in range(5):
-            IndList = RmPageTable[i].find_all('strong')
-            IndDic = {}
-            print(IndList)
-        print('#########################')
-            #if i < 4:
-                #IndDic = RoomPageTableParseLong(IndDic, IndList)
-            #if i == 4:
-                #IndDic = RoomPageTableParseShort(IndDic, IndList)
-            #writeList = RoomPageTableforSql(IndDic, PageToDic[dataID])
-            #print(writeList)
-            #SqlTuple = (int(writeList[0]), writeList[1], float(writeList[2]), float(writeList[3]), int(writeList[4]),float(writeList[5]), int(writeList[6]), writeList[7], int(writeList[8]), float(writeList[9]), writeList[10], float(writeList[11]), float(writeList[12]), writeList[13], writeList[14], writeList[15], writeList[16])
-            #print(len(SqlTuple))
-            #SqlList.append(SqlTuple)
-        #print(SqlList)
+        IndList_list = []
+        for item in RmPageTable:
+            strongFound = item.find_all('strong')
+            strongWOSpan = []
+            for i in strongFound:
+                if not i.find_all('span'):
+                    #print("@@@@@",i)
+                    strongWOSpan.append(i)
+                #else:
+                    #print("%%%%%", i)
+            if strongWOSpan != []:
+                IndList_list.append(strongWOSpan)
 
-    #dataEntry(SqlList)
+        IndDic = {}
+        for IndList in IndList_list[0:3]:
+            IndDic = RoomPageTableParseLong(IndDic, IndList)
+        IndDic = RoomPageTableParseShort(IndDic, IndList_list[4])
+        #print(IndDic)
+        writeList = RoomPageTableforSql(IndDic, PageToDic[dataID])
+        print(writeList)
+        SqlTuple = SqlTupleWriting(writeList)
+        #print(len(SqlTuple))
+        SqlList.append(SqlTuple)
+        print(SqlList)
+    dataEntry(SqlList)
 # After loop1, the values are: Accommodates, Bathrooms, Bed type, Bedrooms, Beds
 # After loop2, the additional values are: CheckIn, CheckOut, Property type, Room type
 # After loop3, the additional values are: Extra people, Weekly discount
@@ -150,8 +170,8 @@ def main():
 # Still Lack: DateReserved
 
 
-
 '''
+
 infile = open('TotalDoconOnePageTEST.html', 'rb')
 html = infile.read()
 soup = BeautifulSoup(html)
