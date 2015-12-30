@@ -112,9 +112,14 @@ def RoomPageTableforSql(IndDic, writeList):
     return writeList
 
 def SqlTupleWriting(writeList):
-    for item in writeList:
-        if item == '':
-            item = '0'
+
+    for i in (2,3,5):
+    if writeList[i] == '':
+        writeList[i] = None
+    else:
+        writeList[i] = float(writeList[i])
+
+
     if writeList[-4] != '0' and writeList[-5] != '0':
         if writeList[-2] != '0':
             if writeList[-3] != '0':
