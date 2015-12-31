@@ -9,14 +9,14 @@ import datetime
 import re
 import csv
 
-
+'''
 conn = sqlite3.connect('test.db')
 c = conn.cursor()
 c.execute('CREATE TABLE airbnb (dataID INT, dataName TEXT, dataLAT REAL, dataLNG REAL, dataRevCnt INT, '
           'dataStarRating REAL, UserID INT, WebPage TEXT, Accommodates INT, Bathrooms REAL, BedType TEXT, '
           'Bedrooms REAL, Beds REAL, CheckIn TEXT, CheckOut TEXT, PropertyType TEXT, RoomType TEXT, '
           'CleaningFee INT, SecurityDeposit INT, WeeklyDiscount REAL, MonthlyDiscount REAL, PermitTaxID TEXT)')
-
+'''
 '''
 url = 'https://www.airbnb.com/s/New-York--NY'
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -30,12 +30,43 @@ outfile.write(html)
 outfile.close()
 '''
 
-def fetchweb(url):
+def fetchweb(url, tryCnt=0):
     time.sleep(5)
+
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     req = request.Request(url=url,headers=headers)
-    response = request.urlopen(req)
-    html = response.read()
+
+    try:
+        print("!!!!")
+        response = request.urlopen(req, timeout=5)
+        print("!!!!")
+    except :
+        print("Oops!")
+        if tryCnt < 5:
+            print("Retrying for the %d time." % tryCnt+1)
+            tryCnt += 1
+            return fetchweb(url, tryCnt)
+        else:
+            print("Shit, I am banned! Retry in 3 mins!")
+            time.sleep(3*60)
+            print("Retry")
+            return fetchweb(url)
+    try:
+        print("!!!!")
+        html = response.read()
+        print("!!!!")
+    except :
+        print("Oops!")
+        if tryCnt < 5:
+            print("Retrying for the %d time." % tryCnt)
+            tryCnt += 1
+            return fetchweb(url, tryCnt)
+        else:
+            print("Shit, I am banned! Retry in 3 mins!")
+            time.sleep(3*60)
+            print("Retry")
+            return fetchweb(url)
+
     return html
 
 # first round: parse data from search page and write on csv
