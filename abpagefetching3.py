@@ -9,15 +9,15 @@ import datetime
 import re
 import csv
 
-'''
+
 conn = sqlite3.connect('test.db')
 c = conn.cursor()
 c.execute('CREATE TABLE airbnb (dataID INT, dataName TEXT, dataLAT REAL, dataLNG REAL, dataRevCnt INT, '
           'dataStarRating REAL, UserID INT, WebPage TEXT, Accommodates INT, Bathrooms REAL, BedType TEXT, '
           'Bedrooms REAL, Beds REAL, CheckIn TEXT, CheckOut TEXT, PropertyType TEXT, RoomType TEXT, '
-          'CleaningFee INT, SecurityDeposit INT, WeeklyDiscount REAL, MonthlyDiscount REAL, Permit/TaxID TEXT)')
+          'CleaningFee INT, SecurityDeposit INT, WeeklyDiscount REAL, MonthlyDiscount REAL, PermitTaxID TEXT)')
 
-
+'''
 url = 'https://www.airbnb.com/s/New-York--NY'
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 req = request.Request(url=url,headers=headers)
@@ -112,27 +112,35 @@ def RoomPageTableforSql(IndDic, writeList):
     return writeList
 
 def SqlTupleWriting(writeList):
-
-    for i in (2,3,5):
-    if writeList[i] == '':
-        writeList[i] = None
-    else:
-        writeList[i] = float(writeList[i])
-
-
-    if writeList[-4] != '0' and writeList[-5] != '0':
-        if writeList[-2] != '0':
-            if writeList[-3] != '0':
-                SqlTuple = (int(writeList[0]), writeList[1], float(writeList[2]), float(writeList[3]), int(writeList[4]),float(writeList[5]), int(writeList[6]), writeList[7], int(writeList[8]), float(writeList[9]), writeList[10], float(writeList[11]), float(writeList[12]), writeList[13], writeList[14], writeList[15], writeList[16], int(writeList[17][1:]), int(writeList[18][1:]), float(writeList[19][:-1])/100, float(writeList[20][:-1])/100, writeList[21])
-            if writeList[-3] = '0':
-                SqlTuple = (int(writeList[0]), writeList[1], float(writeList[2]), float(writeList[3]), int(writeList[4]),float(writeList[5]), int(writeList[6]), writeList[7], int(writeList[8]), float(writeList[9]), writeList[10], float(writeList[11]), float(writeList[12]), writeList[13], writeList[14], writeList[15], writeList[16], int(writeList[17][1:]), int(writeList[18][1:]), float(writeList[19]), float(writeList[20][:-1])/100, writeList[21])
-            if
+    for i in (2,3,5,9,11,12):
+        if writeList[i] == '':
+            writeList[i] = None
+        else:
+            writeList[i] = float(writeList[i])
+    for i in (19,20):
+        if writeList[i] == '':
+            writeList[i] = None
+        else:
+            writeList[i] = float(writeList[i][:-1])/100
+    for i in (0,4,6,8):
+        if writeList[i] == '':
+            writeList[i] = None
+        else:
+            writeList[i] = int(writeList[i])
+    for i in (17,18):
+        if writeList[i] == '':
+            writeList[i] = None
+        else:
+            writeList[i] = int(writeList[i][1:])
+    SqlTuple = (writeList[0], writeList[1], writeList[2], writeList[3], writeList[4],writeList[5], writeList[6], writeList[7], writeList[8], writeList[9], writeList[10], writeList[11], writeList[12], writeList[13], writeList[14], writeList[15], writeList[16], writeList[17], writeList[18], writeList[19], writeList[20], writeList[21])
+    return SqlTuple
 
 def dataEntry(SqlList):
     conn = sqlite3.connect('test.db')
     c = conn.cursor()
-    c.execute('INSERT INTO airbnb VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', SqlList)
-    conn.commit()
+    for SqlTuple in SqlList:
+        c.execute('INSERT INTO airbnb VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', SqlTuple)
+        conn.commit()
 
 
 def main():
@@ -156,9 +164,9 @@ def main():
                 IndList_list.append(strongWOSpan)
 
         IndDic = {}
-        for IndList in IndList_list[0:3]:
+        for IndList in IndList_list[0:-2]:
             IndDic = RoomPageTableParseLong(IndDic, IndList)
-        IndDic = RoomPageTableParseShort(IndDic, IndList_list[4])
+        IndDic = RoomPageTableParseShort(IndDic, IndList_list[-1])
         #print(IndDic)
         writeList = RoomPageTableforSql(IndDic, PageToDic[dataID])
         print(writeList)
